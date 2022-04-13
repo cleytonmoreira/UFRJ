@@ -1,0 +1,238 @@
+/*
+ * Universidade Federal do Rio de Janeiro
+ * Escola Politecnica
+ * Departamento de Eletronica e de Computacao
+ * EEL270 - Computacao II - 2021/2
+ * Prof. Marcelo Luiz Drumond Lanza
+ * 
+ * Autor: Cleyton Marcos Siqueira Moreira
+ * Descricao: Implementacao da funcao MultiplicarMatrizes.
+ *
+ * $Author: cleyton.moreira $
+ * $Date: 2022/04/06 04:51:12 $
+ * $Log: aula0601.c,v $
+ * Revision 1.7  2022/04/06 04:51:12  cleyton.moreira
+ * *** empty log message ***
+ *
+ * Revision 1.6  2022/02/01 08:00:04  cleyton.moreira
+ * *** empty log message ***
+ *
+ * Revision 1.5  2022/02/01 04:53:54  cleyton.moreira
+ * *** empty log message ***
+ *
+ * Revision 1.4  2022/01/25 04:21:42  cleyton.moreira
+ * ls
+ *
+ * Revision 1.3  2022/01/24 14:04:43  cleyton.moreira
+ * *** empty log message ***
+ *
+ * Revision 1.2  2022/01/24 11:43:03  cleyton.moreira
+ * *** empty log message ***
+ *
+ * Revision 1.1  2022/01/23 07:54:58  cleyton.moreira
+ * Initial revision
+ *
+ *
+ */
+
+/* Inclusao dos arquivos cabecalho da biblioteca padrao. */
+#include <stdlib.h>
+#include <stdio.h>
+
+/* Inclusao do arquivo de cabecalho personalizado para o programa. */
+#include "aula0601.h"
+
+
+/* Implementacao da funcao MultiplicarMatrizes */
+tipoErros
+MultiplicarMatrizes (unsigned short LINHA_1, unsigned short COLUNA_1, unsigned short LINHA_2, unsigned short COLUNA_2, 
+			double matriz1 [100][100], double matriz2 [100][100], double matrizResultado [100][100])
+{
+	ush contadorLinhas, contadorColunas, contadorAuxiliar = 0;
+
+	if (matriz1 == NULL)
+		return argumentoNulo;
+	
+	if (matriz2 == NULL)
+		return argumentoNulo;
+	
+	if ((!LINHA_1) || (!COLUNA_1) || (!LINHA_2) || (!COLUNA_2))
+		return argumentoNulo;
+	
+	if ((LINHA_1 > 100) || (LINHA_2 > 100) || (COLUNA_1 > 100) || (COLUNA_2 > 100))
+		return argumentoInvalido;
+
+	if (COLUNA_1 == LINHA_2)
+	{
+		for (contadorLinhas = 0; contadorLinhas < LINHA_1; contadorLinhas++)
+		{
+			for (contadorColunas = 0; contadorColunas < COLUNA_2; contadorColunas++)
+			{
+				matrizResultado [contadorLinhas][contadorColunas] = 0;
+				
+				for (contadorAuxiliar = 0; contadorAuxiliar < COLUNA_1; contadorAuxiliar++)
+				{
+					matrizResultado [contadorLinhas][contadorColunas] = 
+						matrizResultado [contadorLinhas][contadorColunas] + 
+						matriz1 [contadorLinhas][contadorAuxiliar] * 
+						matriz2 [contadorAuxiliar][contadorColunas];
+				}
+			}
+		}
+
+	}
+	else
+	{
+		return argumentoInvalido;
+	}
+
+	return ok;
+}
+
+/* Implementacao  da funcao ObterMatrizTransposta */
+
+tipoErros
+ObterMatrizTransposta (unsigned short linhas_1, unsigned short colunas_1,
+			double matrizOriginal [100][100], double matrizTransposta [100][100])
+{
+	ush contadorLinhas, contadorColunas;
+	for (contadorLinhas = 0; contadorLinhas < linhas_1; contadorLinhas++)
+		for (contadorColunas = 0; contadorColunas < colunas_1; contadorColunas++)
+			matrizTransposta [contadorColunas][contadorLinhas] = matrizOriginal [contadorLinhas][contadorColunas];
+	return ok;
+}
+
+/* Implementacao CalcularDeterminanteMatriz. */
+
+tipoErros
+CalcularDeterminanteMatriz (unsigned short indiceOrdem, double matriz [100][100], double *determinante)
+{
+	double *complementoAlgebrico, local;
+	local = 0;
+	complementoAlgebrico = &local;
+	ush contadorLinhas, contadorColunas;
+	
+	if(indiceOrdem == 1)
+		determinante[0] = matriz[0][0];
+	
+	if(indiceOrdem == 2)
+		determinante[0] = (matriz[0][0] * matriz[1][1]) - (matriz[0][1] * matriz[1][0]);
+
+	if(indiceOrdem == 3)
+	{
+		determinante[0] = ((matriz[0][0]*matriz[1][1]*matriz[2][2] + 
+							matriz[0][1]*matriz[1][2]*matriz[2][0] +
+							matriz[0][2]*matriz[1][0]*matriz[2][1]) -
+							(matriz[0][1]*matriz[1][0]*matriz[2][2] +
+							matriz[0][0]*matriz[1][2]*matriz[2][1] +
+							matriz[0][2]*matriz[1][1]*matriz[2][0]));
+
+	}
+
+	if(indiceOrdem > 3)
+	{
+		double somatorio = 0;
+		contadorLinhas = indiceOrdem - 1;
+		contadorColunas = 0;
+		
+		for (contadorColunas = 0; contadorColunas < indiceOrdem; contadorColunas++)
+		{
+			CalcularComplementoAlgebrico (indiceOrdem , contadorLinhas, contadorColunas, matriz, complementoAlgebrico);
+			somatorio +=  complementoAlgebrico[0] * matriz[contadorLinhas][contadorColunas];
+		}
+		
+		determinante[0] = somatorio;		
+	}
+
+	return ok;
+}
+
+/* Implementacao da funcao CalcularMenorComplementar. */
+
+tipoErros
+CalcularMenorComplementar (unsigned short indiceOrdem, unsigned short linhas1, unsigned short colunas1,
+				double matriz[100][100], double *menorComplementar)
+{
+	double vetorAuxiliar[100];
+	ush indiceLinhas = 0, indiceColunas = 0, contadorLinhas = 0, contadorColunas = 0, contadorAuxiliar = 0;
+	
+	if (indiceOrdem < 2)
+		return argumentoInvalido;
+
+	if (linhas1 > (indiceOrdem - 1) || colunas1 > (indiceOrdem -1))
+		return argumentoInvalido;
+	
+	indiceLinhas = linhas1;
+	indiceColunas = colunas1;
+	
+	for (contadorLinhas = 0; contadorLinhas < indiceOrdem; contadorLinhas++)
+	{
+		for (contadorColunas = 0; contadorColunas < indiceOrdem; contadorColunas++)
+		{
+			if((contadorLinhas != indiceLinhas) && (contadorColunas != indiceColunas))
+			{
+				vetorAuxiliar[contadorAuxiliar] = matriz[contadorLinhas][contadorColunas];
+				contadorAuxiliar++;
+			}
+		}
+	}
+
+	contadorAuxiliar = 0;
+	
+	for (contadorLinhas = 0; contadorLinhas < (indiceOrdem - 1); contadorLinhas++){
+		for (contadorColunas = 0; contadorColunas < (indiceOrdem - 1); contadorColunas++){
+			matriz[contadorLinhas][contadorColunas] = vetorAuxiliar [contadorAuxiliar];
+			contadorAuxiliar++;
+			
+		}
+	}
+	return ok;
+}
+
+/* Implementacao da funcao CalcularComplementoAlgebrico. */
+
+tipoErros
+CalcularComplementoAlgebrico (unsigned short indiceOrdem, unsigned short linhas1, unsigned short colunas1,
+				double matriz [100][100], double *complementoAlgebrico)
+{
+	
+	double *determinante, *menorComplementar;
+	double local;
+	
+	local = 0;
+	determinante = &local;
+	menorComplementar = &local;
+
+	CalcularMenorComplementar ( indiceOrdem, linhas1, colunas1, matriz, menorComplementar);	
+
+        CalcularDeterminanteMatriz (indiceOrdem - 1, matriz, determinante);	
+	
+	
+	if ((linhas1 + colunas1) % 2 == 0)
+		complementoAlgebrico[0] = 1 * determinante[0];
+	else
+		complementoAlgebrico[0] = ((1 * determinante[0]) * (- 1));
+	
+	return ok;
+}
+
+
+/* Implementacao da funcao MostrarMatriz */
+
+void
+MostrarMatriz (unsigned short linhas, unsigned short colunas, double matriz [100][100])
+{
+	ush contadorLinhas, contadorColunas;
+	printf ("\n");
+	for (contadorLinhas = 0; contadorLinhas < linhas; contadorLinhas++)
+	{
+		for (contadorColunas = 0; contadorColunas < colunas; contadorColunas++)
+		{
+			printf ("%.5f   \t", matriz[contadorLinhas][contadorColunas]);
+		}
+		printf ("\n");
+	}
+	printf ("\n");
+}
+
+/* $RCSfile: aula0601.c,v $ */
